@@ -1,2 +1,2 @@
-# content-telegram-bot
-Телеграм бот, собирающий контент и постящий в канал 
+# wallpaper-bot
+Telegram bot for wallpapers channel
