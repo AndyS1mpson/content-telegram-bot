@@ -1,9 +1,10 @@
 package config
 
 import (
+	"content-telegram-bot/internal/infrastructure/clients/telegram"
+	"content-telegram-bot/internal/service/pinterest"
 	"os"
 	"path/filepath"
-	"content-telegram-bot/internal/service/parser/pinterest"
 
 	"gopkg.in/yaml.v2"
 )
@@ -12,6 +13,7 @@ var configFileName = "config.yaml"
 
 // AppConfig конфигурация приложения
 type AppConfig struct {
+	Telegram        telegram.Config    `yaml:"telegram"`
 	PinterestParser []pinterest.Config `yaml:"pinterest"` // конфигурации аккаунтов, разделенных по типу контента в рекомендациях
 }
 

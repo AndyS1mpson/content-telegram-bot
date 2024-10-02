@@ -8,7 +8,7 @@ import (
 
 	"content-telegram-bot/internal/config"
 	"content-telegram-bot/internal/infrastructure/clients/browser"
-	"content-telegram-bot/internal/service/parser/pinterest"
+	"content-telegram-bot/internal/service/pinterest"
 	"content-telegram-bot/internal/utils/log"
 )
 
