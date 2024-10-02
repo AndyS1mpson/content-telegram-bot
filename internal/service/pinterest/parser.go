@@ -12,20 +12,19 @@ const pinterestLoginURL = "https://ru.pinterest.com/login/"
 type Parser struct {
 	browser playwright.Browser
 
-	contentType string
-	login       string
-	password    string
+	tgChannel string
+	login     string
+	password  string
 }
 
 func New(browser playwright.Browser, config Config) *Parser {
 	return &Parser{
-		browser:     browser,
-		contentType: config.ContentType,
-		login:       config.Login,
-		password:    config.Password,
+		browser:   browser,
+		tgChannel: config.TgChannel,
+		login:     config.Login,
+		password:  config.Password,
 	}
 }
-
 
 // signIn попытка залогиниться на странице
 func (p *Parser) signIn(page playwright.Page) error {

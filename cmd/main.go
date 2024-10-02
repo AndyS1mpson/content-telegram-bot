@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 
 	"github.com/pkg/errors"
@@ -35,12 +34,12 @@ func run() (exitCode int) {
 	}
 
 	parser := pinterest.New(br, pinterest.Config{
-		Login:       config.PinterestParser[0].Login,
-		Password:    config.PinterestParser[0].Password,
-		ContentType: config.PinterestParser[0].ContentType,
+		Login:     config.PinterestParser[0].Login,
+		Password:  config.PinterestParser[0].Password,
+		TgChannel: config.PinterestParser[0].TgChannel,
 	})
 
-	_, err = parser.ParseFirstPage(context.Background())
+	_, err = parser.Parse()
 	if err != nil {
 		log.Error(errors.Wrap(err, "run parser"), log.Data{})
 		return failExitCode

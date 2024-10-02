@@ -1,12 +1,13 @@
 package config
 
 import (
-	"content-telegram-bot/internal/infrastructure/clients/telegram"
-	"content-telegram-bot/internal/service/pinterest"
 	"os"
 	"path/filepath"
 
 	"gopkg.in/yaml.v2"
+
+	"content-telegram-bot/internal/service/pinterest"
+	"content-telegram-bot/internal/service/telegram"
 )
 
 var configFileName = "config.yaml"

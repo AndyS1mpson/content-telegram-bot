@@ -1,13 +1,12 @@
 package pinterest
 
 import (
-	"context"
 	"regexp"
 
 	"github.com/pkg/errors"
 	"github.com/playwright-community/playwright-go"
 
-	"content-telegram-bot/internal/model"
+	"content-telegram-bot/internal/models"
 )
 
 const getPinInfoRowFunc = `() => {
@@ -23,8 +22,8 @@ const getPinInfoRowFunc = `() => {
 	return result.slice(0, 30);
 }`
 
-// ParseFirstPage получает изображения с первой страницы ленты рекомендаций пинтереста
-func (p *Parser) ParseFirstPage(ctx context.Context) ([]model.PinterestPin, error) {
+// Parse получает изображения с первой страницы ленты рекомендаций пинтереста
+func (p *Parser) Parse() ([]models.Pin, error) {
 	page, err := p.getNewPage()
 	if err != nil {
 		return nil, errors.Wrap(err, "create new page")
@@ -44,7 +43,7 @@ func (p *Parser) ParseFirstPage(ctx context.Context) ([]model.PinterestPin, erro
 }
 
 // getPinsInfo получение данных о пинах
-func (p *Parser) getPinsInfo(page playwright.Page) ([]model.PinterestPin, error) {
+func (p *Parser) getPinsInfo(page playwright.Page) ([]models.Pin, error) {
 	imagesLocator := page.Locator("img[srcset]")
 	if err := imagesLocator.First().WaitFor(); err != nil {
 		return nil, errors.Wrap(err, "wait for images locator")
@@ -55,15 +54,17 @@ func (p *Parser) getPinsInfo(page playwright.Page) ([]model.PinterestPin, error)
 		return nil, errors.Wrap(err, "get pins info")
 	}
 
-	pins := make([]model.PinterestPin, 0)
+	pins := make([]models.Pin, 0)
 
 	for _, pin := range rowPins.([]interface{}) {
 		pinMap := pin.(map[string]interface{})
 		transformedURL := transformImageURL(pinMap["url"].(string))
 
-		pins = append(pins, model.PinterestPin{
-			ID:       pinMap["id"].(string),
-			ImageURL: transformedURL,
+		pins = append(pins, models.Pin{
+			ID:        pinMap["id"].(int64),
+			ImageURL:  transformedURL,
+			TgChannel: p.tgChannel,
+			Status:    models.PinStatusNew,
 		})
 	}
 

@@ -1,7 +1,7 @@
 package pinterest
 
 import (
-	"content-telegram-bot/internal/model"
+	"content-telegram-bot/internal/models"
 	"context"
 	"fmt"
 
@@ -12,7 +12,7 @@ import (
 const pinURLTemplate = "https://ru.pinterest.com/pin/%s/"
 
 // LikePins лайк пинов для обновления ленты рекомендаций
-func (p *Parser) LikePins(ctx context.Context, pins []model.PinterestPin) error {
+func (p *Parser) LikePins(ctx context.Context, pins []models.Pin) error {
 	page, err := p.getNewPage()
 	if err != nil {
 		return errors.Wrap(err, "create new page")
@@ -32,7 +32,7 @@ func (p *Parser) LikePins(ctx context.Context, pins []model.PinterestPin) error 
 	return nil
 }
 
-func likePin(page playwright.Page, pin model.PinterestPin) error {
+func likePin(page playwright.Page, pin models.Pin) error {
 	_, err := page.Goto(fmt.Sprintf(pinURLTemplate, pin.ID))
 	if err != nil {
 		return errors.Wrap(err, "go to pin page")
