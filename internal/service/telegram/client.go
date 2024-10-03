@@ -1,11 +1,12 @@
 package telegram
 
 import (
-	"content-telegram-bot/internal/models"
+	"context"
 	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/pkg/errors"
+
+	"content-telegram-bot/internal/models"
 )
 
 type TelegramClient struct {
@@ -18,17 +19,11 @@ type TelegramClient struct {
 }
 
 func New(
+	bot *tgbotapi.BotAPI,
 	pinService pinService,
 	accounts map[models.Channel]models.Account,
 	config Config,
 ) (*TelegramClient, error) {
-	bot, err := tgbotapi.NewBotAPI(config.Token)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create telegram bot")
-	}
-
-	bot.Debug = false
-
 	return &TelegramClient{
 		bot:        bot,
 		accounts:   accounts,
@@ -107,4 +102,32 @@ func (c *TelegramClient) sendContent(
 	}
 
 	return nil
+}
+
+// RegisterHandlers регистрация обработчиков
+func (c *TelegramClient) RegisterHandlers(ctx context.Context) {
+	// Запуск polling для обработки обновлений
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+
+	updates := c.bot.GetUpdatesChan(u)
+
+	for update := range updates {
+		if update.Message == nil {
+			continue
+		}
+
+		switch Command(update.Message.Command()) {
+		case CommandStart:
+			c.StartHandler(ctx, &update)
+		case CommandViewPins:
+			c.ViewNewPinHandler(ctx, &update)
+		case CommandParsePinterest:
+			c.ParsePinsHandler(ctx, &update)
+		default:
+			// Неизвестная команда
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Unknown command")
+			c.bot.Send(msg)
+		}
+	}
 }

@@ -7,7 +7,6 @@ import (
 )
 
 type parser interface {
-	GetChannel() models.Channel
 	Parse(account models.Account) ([]models.Pin, error)
 }
 

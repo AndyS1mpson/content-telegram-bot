@@ -12,6 +12,7 @@ import (
 
 const noNewPins = "Новых пинов нет"
 
+// ViewNewPinHandler обработчик вызова команды просмотра нового пина
 func (c *TelegramClient) ViewNewPinHandler(ctx context.Context, update *tgbotapi.Update) {
 	if !c.validateUser(update.Message.From.ID) {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, ErrAccessDenied.Error())

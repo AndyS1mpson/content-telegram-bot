@@ -6,6 +6,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"content-telegram-bot/internal/infrastructure/storage"
 	"content-telegram-bot/internal/service/telegram"
 )
 
@@ -22,6 +23,7 @@ type AccountConfig struct {
 type AppConfig struct {
 	Telegram telegram.Config `yaml:"telegram"`
 	Accounts []AccountConfig `yaml:"accounts"`
+	Database storage.Config  `yaml:"database"`
 }
 
 // NewConfig возвращает декодированную конфигурацию приложения

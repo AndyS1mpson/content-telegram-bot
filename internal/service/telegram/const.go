@@ -3,6 +3,7 @@ package telegram
 import "errors"
 
 var (
+	CommandStart          Command = "/start"           // Старт бота
 	CommandParsePinterest Command = "/parse_pinterest" // Запуск парсинга пинов из pinterest'а
 	CommandViewPins       Command = "/view_pins"       // Просмотр пинов
 )
@@ -11,6 +12,6 @@ var (
 type Command string
 
 var (
-	ErrAccessDenied = errors.New("you do not have access")
+	ErrAccessDenied    = errors.New("you do not have access")
 	ErrIncorrectAction = errors.New("incorrect action")
 )

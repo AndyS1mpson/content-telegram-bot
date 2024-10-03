@@ -1,0 +1,13 @@
+telegram:
+  api_token: your_tg_api_token
+  bot_owner_id: 111111111
+accounts:
+  - channel: Wall Paper
+    login: pinterest_account_login
+    password: pinterest_account_password
+database:
+  user: "postgres"
+  db: "postgres"
+  password: "postgres"
+  host: "localhost"
+  port: 5432

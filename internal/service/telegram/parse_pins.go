@@ -23,7 +23,7 @@ func (c *TelegramClient) ParsePinsHandler(ctx context.Context, update *tgbotapi.
 	}
 
 	if err := c.pinService.Parse(ctx, account); err != nil {
-		c.sendMessage(update.Message.Chat.ID, fmt.Sprintf("Ошибка парсинга: %s", err))
+		c.sendMessage(update.Message.Chat.ID, fmt.Sprintf("parsing error: %s", err))
 		return
 	}
 
