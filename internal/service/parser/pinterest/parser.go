@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/playwright-community/playwright-go"
 
+	"content-telegram-bot/internal/models"
 	"content-telegram-bot/internal/service/common"
 )
 
@@ -11,30 +12,23 @@ const pinterestLoginURL = "https://ru.pinterest.com/login/"
 
 type Parser struct {
 	browser playwright.Browser
-
-	tgChannel string
-	login     string
-	password  string
 }
 
-func New(browser playwright.Browser, config Config) *Parser {
+func New(browser playwright.Browser) *Parser {
 	return &Parser{
-		browser:   browser,
-		tgChannel: config.TgChannel,
-		login:     config.Login,
-		password:  config.Password,
+		browser: browser,
 	}
 }
 
 // signIn попытка залогиниться на странице
-func (p *Parser) signIn(page playwright.Page) error {
+func (p *Parser) signIn(page playwright.Page, account models.Account) error {
 	if _, err := page.Goto(pinterestLoginURL); err != nil {
 		return errors.Wrap(err, "go to login page")
 	}
-	if err := page.Locator(`input[name="id"]`).Fill(p.login); err != nil {
+	if err := page.Locator(`input[name="id"]`).Fill(account.Login); err != nil {
 		return errors.Wrap(err, "fill login")
 	}
-	if err := page.Locator(`input[name="password"]`).Fill(p.password); err != nil {
+	if err := page.Locator(`input[name="password"]`).Fill(account.Password); err != nil {
 		return errors.Wrap(err, "fill password")
 	}
 	if err := page.Locator(`button[type="submit"]`).Click(); err != nil {

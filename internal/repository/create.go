@@ -4,19 +4,19 @@ import (
 	"context"
 	"errors"
 
-	"content-telegram-bot/internal/models"
-
 	sq "github.com/Masterminds/squirrel"
+
+	"content-telegram-bot/internal/models"
 )
 
 // CreatePins сохраняет информацию о пинах
 func (r *Repository) CreatePins(ctx context.Context, pins []models.Pin) error {
 	sql := sq.Insert(pinTableName).
-		Columns("id", "image_url", "status", "tg_channel").
+		Columns("id", "image_url", "status", "type", "channel").
 		PlaceholderFormat(sq.Dollar)
 
 	for _, pin := range pins {
-		sql = sql.Values(pin.ID, pin.ImageURL, pin.Status, pin.TgChannel)
+		sql = sql.Values(pin.ID, pin.URL, pin.Status, pin.Type, pin.Channel)
 	}
 
 	raw, args, err := sql.ToSql()

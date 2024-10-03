@@ -1,6 +1,6 @@
 package repository
 
-var pinTableName = "pinterest_pin"
+var pinTableName = "pin"
 
 // Repository описывает паттерн Repository для взаимодействия с базой данных
 type Repository struct {

@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"content-telegram-bot/internal/models"
 	"context"
 	"fmt"
 
@@ -12,22 +13,19 @@ func (c *TelegramClient) ParsePinsHandler(ctx context.Context, update *tgbotapi.
 	if !c.validateUser(update.Message.From.ID) {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, ErrAccessDenied.Error())
 		c.bot.Send(msg)
-
 		return
 	}
 
-	pins, err := c.pinsParser.Parse()
-	if err != nil {
-		c.sendMessage(update.Message, fmt.Sprintf("parse error: %s", err))
-
+	account, ok := c.accounts[models.Channel(update.Message.Text)]
+	if !ok {
+		c.sendMessage(update.Message.Chat.ID, ErrIncorrectAction.Error())
 		return
 	}
 
-	if err := c.repository.CreatePins(ctx, pins); err != nil {
-		c.sendMessage(update.Message, fmt.Sprintf("save to db: %s", err))
-
+	if err := c.pinService.Parse(ctx, account); err != nil {
+		c.sendMessage(update.Message.Chat.ID, fmt.Sprintf("Ошибка парсинга: %s", err))
 		return
 	}
 
-	c.sendMessage(update.Message, fmt.Sprintf("successful. look it %s", CommandViewPins))
+	c.sendMessage(update.Message.Chat.ID, fmt.Sprintf("successful. look it %s", CommandViewPins))
 }

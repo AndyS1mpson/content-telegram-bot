@@ -6,16 +6,22 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"content-telegram-bot/internal/service/pinterest"
 	"content-telegram-bot/internal/service/telegram"
 )
 
 var configFileName = "config.yaml"
 
+// AccountConfig связь аккаунта с данными для парсинга и канала в который будет поститься контент
+type AccountConfig struct {
+	Channel  string `yaml:"channel"`
+	Login    string `yaml:"login"`
+	Password string `yaml:"password"`
+}
+
 // AppConfig конфигурация приложения
 type AppConfig struct {
-	Telegram        telegram.Config    `yaml:"telegram"`
-	PinterestParser []pinterest.Config `yaml:"pinterest"` // конфигурации аккаунтов, разделенных по типу контента в рекомендациях
+	Telegram telegram.Config `yaml:"telegram"`
+	Accounts []AccountConfig `yaml:"accounts"`
 }
 
 // NewConfig возвращает декодированную конфигурацию приложения

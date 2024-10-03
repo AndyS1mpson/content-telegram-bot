@@ -1,9 +1,10 @@
 package repository
 
-// PinterestPin описывает пин из pinterest
-type PinterestPin struct {
-	ID        int64  `db:"id"`
-	ImageURL  string `db:"image_url"`
-	Status    int64  `db:"status"`
-	TgChannel string `db:"tg_channel"`
+// Pin описывает контент
+type Pin struct {
+	ID      int64  `db:"id"`
+	URL     string `db:"url"`
+	Type    string `db:"type"`
+	Status  int64  `db:"status"`
+	Channel string `db:"channel"`
 }

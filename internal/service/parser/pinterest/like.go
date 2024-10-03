@@ -9,17 +9,17 @@ import (
 	"github.com/playwright-community/playwright-go"
 )
 
-const pinURLTemplate = "https://ru.pinterest.com/pin/%s/"
+const pinURLTemplate = "https://ru.pinterest.com/pin/%v/"
 
 // LikePins лайк пинов для обновления ленты рекомендаций
-func (p *Parser) LikePins(ctx context.Context, pins []models.Pin) error {
+func (p *Parser) LikePins(ctx context.Context, pins []models.Pin, account models.Account) error {
 	page, err := p.getNewPage()
 	if err != nil {
 		return errors.Wrap(err, "create new page")
 	}
 	defer page.Close()
 
-	if err := p.signIn(page); err != nil {
+	if err := p.signIn(page, account); err != nil {
 		return errors.Wrap(err, "sign in")
 	}
 

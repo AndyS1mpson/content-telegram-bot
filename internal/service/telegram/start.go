@@ -7,7 +7,7 @@ import (
 )
 
 const welcomeMessage = `
-	Привет! Это бот для ведения каналов с получением контента из Pinterest.
+	Привет! Это бот для ведения каналов с получением контента и публикацией контента в каналы.
 `
 
 // StartHandler обработчик команды /start
@@ -26,8 +26,7 @@ func (c *TelegramClient) StartHandler(_ context.Context, update *tgbotapi.Update
 	keyboard := tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(parsePinterestButton),
 	)
-	
-	
+
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, welcomeMessage)
 	msg.ReplyMarkup = keyboard
 	c.bot.Send(msg)

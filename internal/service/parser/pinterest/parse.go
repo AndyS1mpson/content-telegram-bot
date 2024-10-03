@@ -23,18 +23,18 @@ const getPinInfoRowFunc = `() => {
 }`
 
 // Parse получает изображения с первой страницы ленты рекомендаций пинтереста
-func (p *Parser) Parse() ([]models.Pin, error) {
+func (p *Parser) Parse(account models.Account) ([]models.Pin, error) {
 	page, err := p.getNewPage()
 	if err != nil {
 		return nil, errors.Wrap(err, "create new page")
 	}
 	defer page.Close()
 
-	if err := p.signIn(page); err != nil {
+	if err := p.signIn(page, account); err != nil {
 		return nil, errors.Wrap(err, "sign in")
 	}
 
-	pins, err := p.getPinsInfo(page)
+	pins, err := p.getPinsInfo(page, account)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse images info")
 	}
@@ -43,7 +43,7 @@ func (p *Parser) Parse() ([]models.Pin, error) {
 }
 
 // getPinsInfo получение данных о пинах
-func (p *Parser) getPinsInfo(page playwright.Page) ([]models.Pin, error) {
+func (p *Parser) getPinsInfo(page playwright.Page, account models.Account) ([]models.Pin, error) {
 	imagesLocator := page.Locator("img[srcset]")
 	if err := imagesLocator.First().WaitFor(); err != nil {
 		return nil, errors.Wrap(err, "wait for images locator")
@@ -61,10 +61,10 @@ func (p *Parser) getPinsInfo(page playwright.Page) ([]models.Pin, error) {
 		transformedURL := transformImageURL(pinMap["url"].(string))
 
 		pins = append(pins, models.Pin{
-			ID:        pinMap["id"].(int64),
-			ImageURL:  transformedURL,
-			TgChannel: p.tgChannel,
-			Status:    models.PinStatusNew,
+			ID:      pinMap["id"].(int64),
+			URL:     transformedURL,
+			Channel: account.Channel,
+			Status:  models.PinStatusNew,
 		})
 	}
 

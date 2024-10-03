@@ -10,4 +10,7 @@ var (
 // Команда для телеграм бота
 type Command string
 
-var ErrAccessDenied = errors.New("you do not have access")
+var (
+	ErrAccessDenied = errors.New("you do not have access")
+	ErrIncorrectAction = errors.New("incorrect action")
+)

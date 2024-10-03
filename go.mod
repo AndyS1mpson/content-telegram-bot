@@ -3,12 +3,14 @@ module content-telegram-bot
 go 1.22.6
 
 require (
+	github.com/AlekSi/pointer v1.2.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/playwright-community/playwright-go v0.4702.0
 	github.com/sirupsen/logrus v1.9.3
+	golang.org/x/sync v0.7.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
