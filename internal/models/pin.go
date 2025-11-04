@@ -1,12 +1,15 @@
 package models
 
+import "time"
+
 // Pin информация о пине
 type Pin struct {
-	ID      int64     `json:"id"`      // идентификатор записи
-	URL     string    `json:"url"`     // идентификатор контента
-	Type    Type      `json:"type"`    // тип контента
-	Status  PinStatus `json:"status"`  // статус
-	Channel Channel   `json:"channel"` // канал для которого пин спаршен
+	ID        int64     `json:"id"`         // идентификатор записи
+	URL       string    `json:"url"`        // идентификатор контента
+	Type      Type      `json:"type"`       // тип контента
+	Status    PinStatus `json:"status"`     // статус
+	Channel   Channel   `json:"channel"`    // канал для которого пин спаршен
+	CreatedAt time.Time `json:"created_at"` // время создания
 }
 
 // PinStatus статус картинки

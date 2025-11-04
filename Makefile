@@ -2,7 +2,7 @@ LOCAL_MIGRATION_DIR=./migrations
 POSTGRES = ${POSTGRES_URL}
 
 # работа с базой данных
-run-database:
+dependencies-up:
 	docker-compose -f ./deployments/docker-compose.yaml up --build
 
 # Секция работы с миграциями

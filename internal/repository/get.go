@@ -48,10 +48,11 @@ func (r *Repository) GetPins(ctx context.Context, filter pin.Filter) ([]models.P
 	pins := make([]models.Pin, 0, len(entities))
 	for _, entity := range entities {
 		pins = append(pins, models.Pin{
-			ID:      entity.ID,
-			URL:     entity.URL,
-			Channel: models.Channel(entity.Channel),
-			Status:  models.PinStatus(entity.Status),
+			ID:        entity.ID,
+			URL:       entity.URL,
+			Channel:   models.Channel(entity.Channel),
+			Status:    models.PinStatus(entity.Status),
+			CreatedAt: entity.CreatedAt,
 		})
 	}
 

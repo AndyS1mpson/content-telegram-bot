@@ -24,6 +24,7 @@ type AppConfig struct {
 	Telegram telegram.Config `yaml:"telegram"`
 	Accounts []AccountConfig `yaml:"accounts"`
 	Database storage.Config  `yaml:"database"`
+	BrowserWS string `yaml:"browser_ws"`
 }
 
 // NewConfig возвращает декодированную конфигурацию приложения

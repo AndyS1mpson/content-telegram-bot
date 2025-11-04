@@ -11,3 +11,4 @@ database:
   password: "postgres"
   host: "localhost"
   port: 5432
+browser_ws: ws://localhost:3000/playwright

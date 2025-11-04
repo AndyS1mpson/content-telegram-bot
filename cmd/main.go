@@ -5,6 +5,7 @@ import (
 	"os"
 
 	// "github.com/go-co-op/gocron"
+	_ "github.com/lib/pq"
 
 	"content-telegram-bot/internal/config"
 	"content-telegram-bot/internal/infrastructure/clients/browser"
@@ -44,7 +45,7 @@ func run() (exitCode int) {
 	pinRepository := repository.New(db)
 
 	// Browser
-	br, close, err := browser.NewBrowser()
+	br, close, err := browser.NewBrowser(cfg.BrowserWS)
 	defer close()
 	if err != nil {
 		log.Error(err, log.Data{})

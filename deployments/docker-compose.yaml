@@ -25,5 +25,20 @@ services:
           cpus: '1'
           memory: 4G
 
+  chromeless:
+    image: browserless/chrome:1.61-puppeteer-10.4.0
+    container_name: chromeless
+    environment:
+      - MAX_CONCURRENT_SESSIONS=15
+      - MAX_QUEUE_LENGTH=15
+      - CONNECTION_TIMEOUT=60000
+      - PREBOOT_CHROME=true
+      - DEFAULT_IGNORE_HTTPS_ERRORS=true
+      - DEFAULT_USER_DATA_DIR=/tmp/chrome
+      - PROXY_SSL=true
+      - DEFAULT_LAUNCH_ARGS=["--window-size=3456,2234", "--no-sandbox", "--disable-dev-shm-usage"]
+    ports:
+     - "3000:3000"
+
 # volumes:
 #   postgres:

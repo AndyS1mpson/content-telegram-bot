@@ -6,15 +6,13 @@ import (
 )
 
 // NewBrowser запуск нового браузера
-func NewBrowser() (playwright.Browser, func() error, error) {
+func NewBrowser(ws string) (playwright.Browser, func() error, error) {
 	pw, err := playwright.Run()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "run playwright")
 	}
 
-	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{
-		Headless: playwright.Bool(false),
-	})
+	browser, err := pw.Chromium.Connect(ws, playwright.BrowserTypeConnectOptions{})
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "run browser")
 	}
