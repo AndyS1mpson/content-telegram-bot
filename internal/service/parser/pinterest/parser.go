@@ -1,6 +1,9 @@
 package pinterest
 
 import (
+	"fmt"
+	"net/url"
+
 	"github.com/pkg/errors"
 	"github.com/playwright-community/playwright-go"
 
@@ -8,7 +11,10 @@ import (
 	"content-telegram-bot/internal/service/common"
 )
 
-const pinterestLoginURL = "https://ru.pinterest.com/login/"
+const (
+	pinterestLoginURL  = "https://ru.pinterest.com/login/"
+	pinterestSearchURL = "https://ru.pinterest.com/search/pins/?q=%s"
+)
 
 type Parser struct {
 	browser playwright.Browser
@@ -40,6 +46,22 @@ func (p *Parser) signIn(page playwright.Page, account models.Account) error {
 		Timeout: playwright.Float(10000),
 	}); err != nil {
 		return errors.Wrap(err, "wait for login completed")
+	}
+
+	return nil
+}
+
+// gotoSearch переход на страницу поиска по заданному запросу
+func (p *Parser) gotoSearch(page playwright.Page, query string) error {
+	if _, err := page.Goto(fmt.Sprintf(pinterestSearchURL, url.QueryEscape(query))); err != nil {
+		return errors.Wrap(err, "go to search page")
+	}
+
+	if err := page.WaitForLoadState(playwright.PageWaitForLoadStateOptions{
+		State:   playwright.LoadStateLoad,
+		Timeout: playwright.Float(10000),
+	}); err != nil {
+		return errors.Wrap(err, "wait for search page load")
 	}
 
 	return nil

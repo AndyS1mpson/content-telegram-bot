@@ -3,12 +3,16 @@ telegram:
   bot_owner_id: 111111111
 accounts:
   - channel: Wall Paper
+    telegram_chat_id: -1001234567890
     login: pinterest_account_login
     password: pinterest_account_password
+
+# Для docker-compose используйте имена сервисов: host: postgres, browser_ws: ws://chromeless:3000/playwright.
+# Для локального запуска (go run ./cmd): host: localhost, browser_ws: ws://localhost:3000/playwright.
 database:
-  user: "postgres"
-  db: "postgres"
-  password: "postgres"
-  host: "localhost"
+  user: postgres
+  db: postgres
+  password: postgres
+  host: postgres
   port: 5432
-browser_ws: ws://localhost:3000/playwright
+browser_ws: ws://chromeless:3000/playwright

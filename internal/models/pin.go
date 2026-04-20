@@ -9,6 +9,7 @@ type Pin struct {
 	Type      Type      `json:"type"`       // тип контента
 	Status    PinStatus `json:"status"`     // статус
 	Channel   Channel   `json:"channel"`    // канал для которого пин спаршен
+	Query     string    `json:"query"`      // поисковая тема, по которой пин спаршен
 	CreatedAt time.Time `json:"created_at"` // время создания
 }
 
@@ -16,16 +17,13 @@ type Pin struct {
 type PinStatus int64
 
 var (
-	PinStatusNew    PinStatus = 1 // новый спаршенный объект
-	PinStatusViewed PinStatus = 2 // просмотренный объект
-	PinStatusPosted PinStatus = 3 // запосченный объект
+	PinStatusNew      PinStatus = 1 // новый спаршенный объект
+	PinStatusViewed   PinStatus = 2 // просмотренный объект (отклонён или пропущен)
+	PinStatusPosted   PinStatus = 3 // запосченный объект
+	PinStatusSelected PinStatus = 4 // отмеченный для публикации
 )
 
 type Channel string
-
-var (
-	ChannelWallpaper string = "Wall Paper"
-)
 
 // MediaType тип контента который будет поститься в тг канал
 type Type string

@@ -3,35 +3,17 @@ package repository
 import (
 	"context"
 
-	"content-telegram-bot/internal/service/pin"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
+
+	"content-telegram-bot/internal/service/pin"
 )
 
-// CountPins посчитать количество пинов, удовлетсоряющих фильтрам
+// CountPins посчитать количество пинов, удовлетворяющих фильтрам
 func (r *Repository) CountPins(ctx context.Context, filter pin.Filter) (int64, error) {
 	sql := sq.Select("COUNT(*) as total").From(pinTableName).PlaceholderFormat(sq.Dollar)
 
-	if filter.IDs != nil {
-		sql = sql.Where(sq.Eq{"id": filter.IDs})
-	}
-
-	if filter.Statuses != nil {
-		sql = sql.Where(sq.Eq{"status": filter.Statuses})
-	}
-
-	if filter.Channels != nil {
-		sql = sql.Where(sq.Eq{"channel": filter.Channels})
-	}
-
-	if filter.Limit != nil {
-		sql = sql.Limit(uint64(*filter.Limit))
-	}
-
-	if filter.Types != nil {
-		sql = sql.Where(sq.Eq{"type": filter.Types})
-	}
+	sql = applyFilter(sql, filter)
 
 	raw, args, err := sql.ToSql()
 	if err != nil {

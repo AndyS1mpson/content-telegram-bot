@@ -9,5 +9,6 @@ type Pin struct {
 	Type      string    `db:"type"`
 	Status    int64     `db:"status"`
 	Channel   string    `db:"channel"`
+	Query     string    `db:"query"`
 	CreatedAt time.Time `db:"created_at"`
 }

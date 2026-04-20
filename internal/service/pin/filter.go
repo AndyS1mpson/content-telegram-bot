@@ -10,5 +10,6 @@ type Filter struct {
 	Statuses []models.PinStatus
 	Types    []models.Type
 	Channels []models.Channel
+	Query    *string
 	Limit    *int64
 }

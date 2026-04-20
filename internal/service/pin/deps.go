@@ -7,7 +7,7 @@ import (
 )
 
 type parser interface {
-	Parse(account models.Account) ([]models.Pin, error)
+	Parse(account models.Account, query string) ([]models.Pin, error)
 }
 
 type repository interface {

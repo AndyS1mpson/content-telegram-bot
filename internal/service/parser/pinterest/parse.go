@@ -2,6 +2,7 @@ package pinterest
 
 import (
 	"regexp"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/playwright-community/playwright-go"
@@ -22,8 +23,8 @@ const getPinInfoRowFunc = `() => {
 	return result.slice(0, 30);
 }`
 
-// Parse получает изображения с первой страницы ленты рекомендаций пинтереста
-func (p *Parser) Parse(account models.Account) ([]models.Pin, error) {
+// Parse получает изображения по заданной тематике (или с ленты рекомендаций, если query пустой).
+func (p *Parser) Parse(account models.Account, query string) ([]models.Pin, error) {
 	page, err := p.getNewPage()
 	if err != nil {
 		return nil, errors.Wrap(err, "create new page")
@@ -34,7 +35,13 @@ func (p *Parser) Parse(account models.Account) ([]models.Pin, error) {
 		return nil, errors.Wrap(err, "sign in")
 	}
 
-	pins, err := p.getPinsInfo(page, account)
+	if query != "" {
+		if err := p.gotoSearch(page, query); err != nil {
+			return nil, errors.Wrap(err, "go to search")
+		}
+	}
+
+	pins, err := p.getPinsInfo(page, account, query)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse images info")
 	}
@@ -43,7 +50,7 @@ func (p *Parser) Parse(account models.Account) ([]models.Pin, error) {
 }
 
 // getPinsInfo получение данных о пинах
-func (p *Parser) getPinsInfo(page playwright.Page, account models.Account) ([]models.Pin, error) {
+func (p *Parser) getPinsInfo(page playwright.Page, account models.Account, query string) ([]models.Pin, error) {
 	imagesLocator := page.Locator("img[srcset]")
 	if err := imagesLocator.First().WaitFor(); err != nil {
 		return nil, errors.Wrap(err, "wait for images locator")
@@ -54,16 +61,39 @@ func (p *Parser) getPinsInfo(page playwright.Page, account models.Account) ([]mo
 		return nil, errors.Wrap(err, "get pins info")
 	}
 
-	pins := make([]models.Pin, 0)
+	rows, ok := rowPins.([]interface{})
+	if !ok {
+		return nil, errors.New("unexpected pins payload shape")
+	}
 
-	for _, pin := range rowPins.([]interface{}) {
-		pinMap := pin.(map[string]interface{})
-		transformedURL := transformImageURL(pinMap["url"].(string))
+	pins := make([]models.Pin, 0, len(rows))
+	seen := make(map[int64]struct{}, len(rows))
+
+	for _, raw := range rows {
+		pinMap, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		idStr, _ := pinMap["id"].(string)
+		rawURL, _ := pinMap["url"].(string)
+
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil || rawURL == "" {
+			continue
+		}
+
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
 
 		pins = append(pins, models.Pin{
-			ID:      pinMap["id"].(int64),
-			URL:     transformedURL,
+			ID:      id,
+			URL:     transformImageURL(rawURL),
+			Type:    models.TypePin,
 			Channel: account.Channel,
+			Query:   query,
 			Status:  models.PinStatusNew,
 		})
 	}

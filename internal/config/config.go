@@ -14,9 +14,10 @@ var configFileName = "config.yaml"
 
 // AccountConfig связь аккаунта с данными для парсинга и канала в который будет поститься контент
 type AccountConfig struct {
-	Channel  string `yaml:"channel"`
-	Login    string `yaml:"login"`
-	Password string `yaml:"password"`
+	Channel        string `yaml:"channel"`
+	TelegramChatID int64  `yaml:"telegram_chat_id"`
+	Login          string `yaml:"login"`
+	Password       string `yaml:"password"`
 }
 
 // AppConfig конфигурация приложения

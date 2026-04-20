@@ -7,13 +7,15 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"content-telegram-bot/internal/models"
+	"content-telegram-bot/internal/utils/log"
 )
 
 type TelegramClient struct {
 	bot        *tgbotapi.BotAPI
 	pinService pinService
 
-	accounts map[models.Channel]models.Account
+	accounts       map[models.Channel]models.Account
+	defaultAccount models.Account
 
 	ownerID int64
 }
@@ -24,11 +26,22 @@ func New(
 	accounts map[models.Channel]models.Account,
 	config Config,
 ) (*TelegramClient, error) {
+	if len(accounts) == 0 {
+		return nil, fmt.Errorf("at least one account must be configured")
+	}
+
+	var defaultAccount models.Account
+	for _, acc := range accounts {
+		defaultAccount = acc
+		break
+	}
+
 	return &TelegramClient{
-		bot:        bot,
-		accounts:   accounts,
-		pinService: pinService,
-		ownerID:    config.BotOwnerID,
+		bot:            bot,
+		accounts:       accounts,
+		defaultAccount: defaultAccount,
+		pinService:     pinService,
+		ownerID:        config.BotOwnerID,
 	}, nil
 }
 
@@ -39,36 +52,37 @@ func (c *TelegramClient) validateUser(userID int64) bool {
 // sendMessage отправляет сообщение в телеграм
 func (c *TelegramClient) sendMessage(chatID int64, response string) {
 	msg := tgbotapi.NewMessage(chatID, response)
-	c.bot.Send(msg)
+	if _, err := c.bot.Send(msg); err != nil {
+		log.Error(err, log.Data{"chat_id": chatID, "text": response})
+	}
 }
 
-// sendPinWithCheckboxes отправка пина с командами
+// sendPinWithCheckboxes отправка пина с кнопками выбора
 func (c *TelegramClient) sendPinWithCheckboxes(
 	chatID int64,
 	pin models.Pin,
-	unwatchedPinsCount int64,
+	remainingCount int64,
 ) {
-	likeCallback := fmt.Sprintf("like_%d_%s_%s", pin.ID, pin.Type, pin.Channel)
-	dislikeCallback := fmt.Sprintf("dislike_%d_%s_%s", pin.ID, pin.Type, pin.Channel)
-	skipCallback := fmt.Sprintf("skip_%d_%s_%s", pin.ID, pin.Type, pin.Channel)
+	likeCallback := formatCallback(callbackLike, pin.ID)
+	dislikeCallback := formatCallback(callbackDislike, pin.ID)
+	skipCallback := formatCallback(callbackSkip, pin.ID)
 
 	keyboard := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("❤️", likeCallback),
-			tgbotapi.NewInlineKeyboardButtonData("👎", dislikeCallback),
-			tgbotapi.NewInlineKeyboardButtonData("Не хочу больше смотреть", skipCallback),
+			tgbotapi.NewInlineKeyboardButtonData("❤️ В публикацию", likeCallback),
+			tgbotapi.NewInlineKeyboardButtonData("👎 Отклонить", dislikeCallback),
+			tgbotapi.NewInlineKeyboardButtonData("⏭ Пропустить", skipCallback),
 		),
 	)
 
-	caption := fmt.Sprintf("Осталось еще %d не просмотренных %s", unwatchedPinsCount, pin.Type)
+	caption := fmt.Sprintf("Тема: %s\nОсталось неотсмотренных: %d", pin.Query, remainingCount)
 
 	if err := c.sendContent(chatID, pin, caption, &keyboard); err != nil {
 		c.sendMessage(chatID, err.Error())
 	}
-
 }
 
-// sendImage универсальная функция для отправки контента
+// sendContent универсальная функция для отправки картинки или видео
 func (c *TelegramClient) sendContent(
 	chatID int64,
 	pin models.Pin,
@@ -78,56 +92,57 @@ func (c *TelegramClient) sendContent(
 	var msg tgbotapi.Chattable
 
 	switch pin.Type {
-	case models.TypePin:
-		msg = tgbotapi.NewPhoto(chatID, tgbotapi.FileURL(pin.URL))
-		msg.(*tgbotapi.PhotoConfig).Caption = caption
 	case models.TypeVideo:
-		msg = tgbotapi.NewVideo(chatID, tgbotapi.FileURL(pin.URL))
-		msg.(*tgbotapi.VideoConfig).Caption = caption
-	}
-
-	// Если передана клавиатура, добавляем её к сообщению
-	if replyMarkup != nil {
-		switch m := msg.(type) {
-		case *tgbotapi.PhotoConfig:
-			m.ReplyMarkup = replyMarkup
-		case *tgbotapi.VideoConfig:
-			m.ReplyMarkup = replyMarkup
+		video := tgbotapi.NewVideo(chatID, tgbotapi.FileURL(pin.URL))
+		video.Caption = caption
+		if replyMarkup != nil {
+			video.ReplyMarkup = replyMarkup
 		}
+		msg = video
+	default:
+		photo := tgbotapi.NewPhoto(chatID, tgbotapi.FileURL(pin.URL))
+		photo.Caption = caption
+		if replyMarkup != nil {
+			photo.ReplyMarkup = replyMarkup
+		}
+		msg = photo
 	}
 
-	_, err := c.bot.Send(msg)
-	if err != nil {
+	if _, err := c.bot.Send(msg); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// RegisterHandlers регистрация обработчиков
+// RegisterHandlers регистрация обработчиков сообщений и callback-запросов
 func (c *TelegramClient) RegisterHandlers(ctx context.Context) {
-	// Запуск polling для обработки обновлений
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
 	updates := c.bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message == nil {
-			continue
+		switch {
+		case update.CallbackQuery != nil:
+			c.CallbackHandler(ctx, &update)
+		case update.Message != nil:
+			c.handleMessage(ctx, &update)
 		}
+	}
+}
 
-		switch Command(update.Message.Command()) {
-		case CommandStart:
-			c.StartHandler(ctx, &update)
-		case CommandViewPins:
-			c.ViewNewPinHandler(ctx, &update)
-		case CommandParsePinterest:
-			c.ParsePinsHandler(ctx, &update)
-		default:
-			// Неизвестная команда
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Unknown command")
-			c.bot.Send(msg)
-		}
+func (c *TelegramClient) handleMessage(ctx context.Context, update *tgbotapi.Update) {
+	switch Command("/" + update.Message.Command()) {
+	case CommandStart:
+		c.StartHandler(ctx, update)
+	case CommandCollect:
+		c.CollectHandler(ctx, update)
+	case CommandView:
+		c.ViewHandler(ctx, update)
+	case CommandPublish:
+		c.PublishHandler(ctx, update)
+	default:
+		c.sendMessage(update.Message.Chat.ID, "Unknown command. Try /start")
 	}
 }

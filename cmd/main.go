@@ -81,9 +81,10 @@ func getAccounts(cfg []config.AccountConfig) map[models.Channel]models.Account {
 
 	for _, account := range cfg {
 		result[models.Channel(account.Channel)] = models.Account{
-			Channel:  models.Channel(account.Channel),
-			Login:    account.Login,
-			Password: account.Password,
+			Channel:        models.Channel(account.Channel),
+			TelegramChatID: account.TelegramChatID,
+			Login:          account.Login,
+			Password:       account.Password,
 		}
 	}
 

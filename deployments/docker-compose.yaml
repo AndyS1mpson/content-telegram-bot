@@ -1,44 +1,67 @@
 services:
   postgres:
-    image: postgres:latest
-    container_name: postgres
+    image: postgres:16-alpine
+    container_name: wallpaper_postgres
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     env_file:
       - .env
-    # volumes:
-    #   - postgres:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 4G
 
   chromeless:
     image: browserless/chrome:1.61-puppeteer-10.4.0
-    container_name: chromeless
+    container_name: wallpaper_chrome
     environment:
-      - MAX_CONCURRENT_SESSIONS=15
-      - MAX_QUEUE_LENGTH=15
+      - MAX_CONCURRENT_SESSIONS=5
+      - MAX_QUEUE_LENGTH=5
       - CONNECTION_TIMEOUT=60000
       - PREBOOT_CHROME=true
       - DEFAULT_IGNORE_HTTPS_ERRORS=true
       - DEFAULT_USER_DATA_DIR=/tmp/chrome
       - PROXY_SSL=true
-      - DEFAULT_LAUNCH_ARGS=["--window-size=3456,2234", "--no-sandbox", "--disable-dev-shm-usage"]
-    ports:
-     - "3000:3000"
+      - DEFAULT_LAUNCH_ARGS=["--window-size=1920,1080", "--no-sandbox", "--disable-dev-shm-usage"]
+    restart: unless-stopped
 
-# volumes:
-#   postgres:
+  migrations:
+    image: ghcr.io/kukymbr/goose-docker:3.24.0
+    container_name: wallpaper_migrations
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: "host=postgres port=5432 user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable"
+      GOOSE_COMMAND: up
+    env_file:
+      - .env
+    volumes:
+      - ../internal/migrations:/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  bot:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    container_name: wallpaper_bot
+    volumes:
+      - ../config.yaml:/app/config.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      chromeless:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

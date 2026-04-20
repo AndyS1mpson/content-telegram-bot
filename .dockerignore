@@ -1,0 +1,12 @@
+.git
+.gitignore
+.idea
+.vscode
+bin
+docs
+*.md
+!README.md
+config.yaml
+deployments/.env
+deployments/Dockerfile
+.dockerignore
